@@ -20,4 +20,3 @@ Ouvrir deux terminaux, et lancer l'API en premier.
 Pour activer le `.venv` : `source .venv/bin/activate`, à faire dans chaque terminal.
 
 Ensuite, ouvrir http://localhost:8501.
-# bottle-api-streamlit
