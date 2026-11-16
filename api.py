@@ -16,8 +16,11 @@ taches = {1: {"id": 1, "titre": "Découvrir Bottle", "faite": False}}
 # GET /taches : renvoie la liste de toutes les tâches.
 @app.get("/taches")
 def lister():
-    # Bottle transforme automatiquement un dict en JSON.
-    # (Il ne le fait pas pour une liste, d'où la clé "taches".)
+    # taches.values() donne toutes les tâches ; list() en fait une liste.
+    # Si on renvoie un dict, Bottle le transforme tout seul en JSON.
+    # Si on renvoie une liste, Bottle plante (erreur 500).
+    # On range donc la liste dans un dict, sous la clé "taches".
+    # Le client reçoit : {"taches": [{"id": 1, ...}, {"id": 2, ...}]}
     return {"taches": list(taches.values())}
 
 

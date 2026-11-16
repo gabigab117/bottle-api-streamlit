@@ -26,15 +26,17 @@ with st.form("nouvelle", clear_on_submit=True):
 
 # Cette fonction est appelée quand on clique sur une case,
 # AVANT que Streamlit relance le script.
-def cocher(tache_id):
-    # On lit la nouvelle valeur de la case, rangée par Streamlit sous sa clé.
-    faite = st.session_state[f"tache_{tache_id}"]
+def cocher(tache_id, faite):
     # On prévient l'API avec un PATCH.
     requests.patch(f"{API}/taches/{tache_id}", json={"faite": faite})
 
 
-# On demande la liste des tâches à l'API (GET) et on lit le JSON reçu.
-liste = requests.get(f"{API}/taches").json()["taches"]
+# On envoie un GET à l'API pour avoir les tâches.
+reponse = requests.get(f"{API}/taches")
+# .json() transforme le JSON reçu en dict Python : {"taches": [...]}
+donnees = reponse.json()
+# On sort la liste des tâches, rangée sous la clé "taches".
+liste = donnees["taches"]
 
 # Pour chaque tâche reçue...
 for tache in liste:
@@ -42,10 +44,11 @@ for tache in liste:
     st.checkbox(
         tache["titre"],
         value=tache["faite"],
-        # Une clé unique pour retrouver la valeur de cette case.
-        key=f"tache_{tache['id']}",
+        # Une clé unique, pour que Streamlit ne confonde pas deux cases.
+        key=tache["id"],
         # La fonction à appeler quand la case change...
         on_change=cocher,
-        # ... et l'argument à lui donner : l'id de la tâche.
-        args=(tache["id"],),
+        # ... avec l'id de la tâche et sa nouvelle valeur.
+        # Un clic inverse toujours la case : la nouvelle valeur est donc l'inverse.
+        args=(tache["id"], not tache["faite"]),
     )
