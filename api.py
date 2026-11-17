@@ -1,7 +1,11 @@
 # api.py : une mini API qui gère une liste de tâches.
 # Lancer avec : uv run api.py
 
-# On importe les outils de Bottle dont on a besoin.
+# On importe les outils de Bottle dont on a besoin :
+# - Bottle : la classe qui crée l'application web ;
+# - request : la requête envoyée par le client (ce qu'il nous demande) ;
+# - response : la réponse qu'on lui renvoie (on peut changer son code HTTP) ;
+# - abort : arrête tout de suite la fonction et renvoie une erreur HTTP.
 from bottle import Bottle, request, response, abort
 
 # On crée notre application web.
@@ -30,6 +34,13 @@ def creer():
     # On calcule un nouvel id : le plus grand id existant + 1.
     nouvel_id = max(taches, default=0) + 1
     # On lit le titre envoyé par le client dans le corps JSON de la requête.
+    # request est importé une seule fois en haut du fichier, mais Bottle le
+    # remplit à chaque appel avec la requête du client en cours.
+    # request.json transforme le corps JSON en dict Python :
+    # si le client envoie {"titre": "Faire les courses"},
+    # alors request.json["titre"] vaut "Faire les courses".
+    # Attention : request.json vaut None si le client n'envoie pas l'en-tête
+    # Content-Type: application/json. Dans ce cas, ["titre"] plante (erreur 500).
     titre = request.json["titre"]
     # On construit la nouvelle tâche, pas encore faite.
     tache = {"id": nouvel_id, "titre": titre, "faite": False}
@@ -46,9 +57,15 @@ def creer():
 @app.patch("/taches/<tache_id:int>")
 def modifier(tache_id):
     # Si la tâche n'existe pas, on répond 404 : « introuvable ».
+    # abort lève une exception : la fonction s'arrête ici et la suite
+    # ne s'exécute pas. Bottle attrape l'exception et envoie l'erreur au client.
+    # C'est l'équivalent de response.status = 404 suivi d'un return.
+    # Attention : Bottle renvoie cette erreur en page HTML, pas en JSON.
     if tache_id not in taches:
         abort(404, "Tâche introuvable")
     # On met à jour le champ "faite" avec la valeur envoyée par le client.
+    # Même principe que dans creer() : request.json est le corps JSON en dict,
+    # par exemple {"faite": true} donne request.json["faite"] == True.
     taches[tache_id]["faite"] = request.json["faite"]
     # On renvoie la tâche modifiée.
     return taches[tache_id]
